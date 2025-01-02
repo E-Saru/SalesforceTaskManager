@@ -1,24 +1,3 @@
-<!-- <template>
-    <lightning-card title="Task List" icon-name="custom:custom63">
-        <template if:true={tasks}>
-            <lightning-datatable
-                data={tasks}
-                columns={[
-                    { label: 'Task Name', fieldName: 'Name' },
-                    { label: 'Due Date', fieldName: 'Due_Date__c', type: 'date' },
-                    { label: 'Completed', fieldName: 'Completed__c', type: 'boolean' }
-                ]}
-                class="slds-m-around_medium"
-            ></lightning-datatable>
-        </template>
-        <template if:false={tasks}>
-            <lightning-spinner alternative-text="Loading..."></lightning-spinner>
-        </template>
-    </lightning-card>
-</template> -->
-
-
-
 <template>
     <lightning-card title="Task List" icon-name="custom:custom63">
         <template if:true={tasks}>
@@ -28,8 +7,8 @@
                 class="slds-m-around_medium"
             ></lightning-datatable>
         </template>
-        <template if:false={tasks}>
+        <!-- <template if:false={tasks}>
             <lightning-spinner alternative-text="Loading..."></lightning-spinner>
-        </template>
+        </template> -->
     </lightning-card>
 </template>

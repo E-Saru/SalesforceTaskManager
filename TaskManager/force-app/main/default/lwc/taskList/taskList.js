@@ -1,60 +1,46 @@
-// import { LightningElement, wire } from 'lwc';
-// import getTasks from '@salesforce/apex/TaskController.getTasks';
-// import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-
-// export default class TaskList extends LightningElement {
-//     tasks;
-
-//     @wire(getTasks)
-//     wiredTasks({ error, data }) {
-//         if (data) {
-//             this.tasks = data;
-//         } else if (error) {
-//             console.error(error);
-//         }
-//     }
-
-//     handleTaskCompletion(taskId) {
-//         // Simulate marking the task as completed (replace with actual logic)
-//         this.showToast('Success', `Task ${taskId} marked as completed.`, 'success');
-//     }
-
-//     showToast(title, message, variant) {
-//         const event = new ShowToastEvent({
-//             title,
-//             message,
-//             variant
-//         });
-//         this.dispatchEvent(event);
-//     }
-// }
-
-
-
-import { LightningElement, wire } from 'lwc';
+import { LightningElement, wire, track } from 'lwc';
 import getTasks from '@salesforce/apex/TaskController.getTasks';
+import saveTask from '@salesforce/apex/TaskController.saveTask'; // Hypothetical Apex method for saving a task
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import { refreshApex } from '@salesforce/apex';
 
 export default class TaskList extends LightningElement {
-    tasks; // Stores the task data
+    @track tasks = []; // Stores the task data
+    wiredTasksResult; // Tracks wired results for refreshing
+
     columns = [
         { label: 'Task Name', fieldName: 'Name' },
         { label: 'Due Date', fieldName: 'Due_Date__c', type: 'date' },
         { label: 'Completed', fieldName: 'Completed__c', type: 'boolean' }
-    ]; // Defines the columns for the lightning-datatable
+    ];
 
     @wire(getTasks)
-    wiredTasks({ error, data }) {
+    wiredTasks(result) {
+        this.wiredTasksResult = result; // Store the wire result for refresh
+        const { data, error } = result;
         if (data) {
             this.tasks = data;
         } else if (error) {
-            console.error(error);
+            console.error('Error retrieving tasks:', error);
         }
     }
 
-    handleTaskCompletion(taskId) {
-        // Simulate marking the task as completed (replace with actual logic)
-        this.showToast('Success', `Task ${taskId} marked as completed.`, 'success');
+    handleSaveTask(newTask) {
+        saveTask({ task: newTask }) // Call Apex method to save the task
+            .then(() => {
+                // Append the new task locally
+                this.tasks = [...this.tasks, newTask];
+                
+                // Refresh the task list from the server to ensure consistency
+                return refreshApex(this.wiredTasksResult);
+            })
+            .then(() => {
+                this.showToast('Success', `Task "${newTask.Name}" has been added.`, 'success');
+            })
+            .catch(error => {
+                console.error('Error saving task:', error);
+                this.showToast('Error', 'Failed to save task. Please try again.', 'error');
+            });
     }
 
     showToast(title, message, variant) {
